@@ -1,0 +1,37 @@
+[
+  {
+    "id": "1744124477965",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "password": "$2b$10$q7IpYnL5A5Gdwcd6sm/8EeJNkySGEJs9xE94jjnTtUFCTJyX071Fe"
+  },
+  {
+    "id": "1744124617833",
+    "firstName": "John2",
+    "lastName": "Doe2",
+    "email": "john.doe@gmail.com",
+    "password": "$2b$10$9HNQjCY6Tl.4wrUEQAVwse50x.KL79qR1LmrBAg1qMq.KAi.UfRfO"
+  },
+  {
+    "id": "1744128178895",
+    "firstName": "Test",
+    "lastName": "Tester",
+    "email": "Naumets@gmail.com",
+    "password": "$2b$10$gskRTmyzEtsLsDagqiYy5eijTFQoLDD20ND53VbkUY0OTD0Jpk.Se"
+  },
+  {
+    "id": "1744128242816",
+    "firstName": "gg",
+    "lastName": "ggg",
+    "email": "naumhgs2007@gmail.com",
+    "password": "$2b$10$CQdgrmtq2ffqzddguMZd1Oz/0Q1P.sgjscJ8Jzx4IX7u0Z9vMrIne"
+  },
+  {
+    "id": "1744131101281",
+    "firstName": "h",
+    "lastName": "j",
+    "email": "gg@gmail.com",
+    "password": "$2b$10$RbeICi0hzjeULuKVmKsG2.PFjofsyJV5XvQgi2Es8IG7AXyNQOzCu"
+  }
+]
