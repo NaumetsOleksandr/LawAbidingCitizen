@@ -11,14 +11,9 @@ const HomeScreen = ({ navigation, route }) => {
       setIsLoggingOut(true);
       console.log(`Starting logout for ${userEmail}`);
       
-      // Виконуємо логаут на клієнті
       await authService.logout();
       console.log('Client logout successful');
       
-      // Опціонально: відправляємо запит на сервер для інвалідації токена
-      // await authService.serverLogout();
-      
-      // Навігація назад на екран авторизації
       navigation.reset({
         index: 0,
         routes: [{ name: 'Auth' }],
