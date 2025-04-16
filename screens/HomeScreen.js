@@ -13,11 +13,11 @@ const HomeScreen = ({ navigation, route }) => {
       
       await authService.logout();
       console.log('Client logout successful');
-      
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Auth' }],
-      });
+
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [{ name: 'Auth' }],
+      // });
       
       console.log(`User ${userEmail} logged out successfully`);
     } catch (error) {
