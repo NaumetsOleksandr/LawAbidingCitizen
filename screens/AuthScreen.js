@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, Alert, StyleSheet, ActivityIndicator } from 'react-native';
-import authService from '../services/authService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const API_URL = 'http://192.168.1.108:5000/api';
 
 const AuthScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -12,39 +14,65 @@ const AuthScreen = ({ navigation }) => {
 
   const authHandler = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Email and password are required');
+      Alert.alert('Помилка', 'Електронна пошта та пароль обов\'язкові');
       return;
     }
 
     if (!isLogin && (!firstName || !lastName)) {
-      Alert.alert('Error', 'First name and last name are required');
+      Alert.alert('Помилка', 'Ім\'я та прізвище обов\'язкові');
       return;
     }
 
     setIsLoading(true);
 
     try {
+      let response;
       if (isLogin) {
-        console.log('Attempting login with:', { email, password });
-        const response = await authService.login(email, password);
-        console.log('Login response:', response);
-        
-        navigation.navigate('Home');
+        response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        });
       } else {
-        console.log('Attempting registration with:', { firstName, lastName, email, password });
-        const response = await authService.register(firstName, lastName, email, password);
-        console.log('Registration response:', response);
-        
-        Alert.alert('Success', 'Registration successful. Please login.');
-        setIsLogin(true);
-        setFirstName('');
-        setLastName('');
+        response = await fetch(`${API_URL}/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            email,
+            password,
+          }),
+        });
       }
 
-      setPassword('');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Помилка автентифікації');
+      }
+
+      if (isLogin) {
+        await AsyncStorage.setItem('userToken', data.token);
+        await AsyncStorage.setItem('userId', data.userId);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainDrawer2' }],
+        });
+      } else {
+        Alert.alert('Успіх', 'Реєстрація успішна. Будь ласка, увійдіть.');
+        setIsLogin(true);
+      }
     } catch (error) {
       console.error('Auth error:', error);
-      Alert.alert('Error', error.message || 'Something went wrong');
+      Alert.alert('Помилка', error.message || 'Помилка автентифікації');
     } finally {
       setIsLoading(false);
     }
@@ -54,27 +82,27 @@ const AuthScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Processing your request...</Text>
+        <Text>Обробка вашого запиту...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{isLogin ? 'Login' : 'Sign Up'}</Text>
+      <Text style={styles.title}>{isLogin ? 'Вхід' : 'Реєстрація'}</Text>
       
       {!isLogin && (
         <>
           <TextInput
             style={styles.input}
-            placeholder="First Name"
+            placeholder="Ім'я"
             value={firstName}
             onChangeText={setFirstName}
             autoCapitalize="words"
           />
           <TextInput
             style={styles.input}
-            placeholder="Last Name"
+            placeholder="Прізвище"
             value={lastName}
             onChangeText={setLastName}
             autoCapitalize="words"
@@ -84,25 +112,23 @@ const AuthScreen = ({ navigation }) => {
       
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Електронна пошта"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-        autoCompleteType="email"
       />
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Пароль"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        autoCompleteType="password"
       />
       
       <View style={styles.buttonContainer}>
         <Button
-          title={isLogin ? 'Login' : 'Sign Up'}
+          title={isLogin ? 'Увійти' : 'Зареєструватися'}
           onPress={authHandler}
           disabled={isLoading}
         />
@@ -110,7 +136,7 @@ const AuthScreen = ({ navigation }) => {
       
       <View style={styles.switchContainer}>
         <Button
-          title={`Switch to ${isLogin ? 'Sign Up' : 'Login'}`}
+          title={isLogin ? 'Немає акаунта? Зареєструватися' : 'Вже є акаунт? Увійти'}
           onPress={() => setIsLogin(prev => !prev)}
           color="#666"
         />

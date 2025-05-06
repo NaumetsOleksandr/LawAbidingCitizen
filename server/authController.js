@@ -28,13 +28,18 @@ module.exports = {
       await storage.saveUser(newUser);
       res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-      res.status(500).json({ message: 'Registration failed', error });
+      res.status(500).json({ message: 'Registration failed', error: error.message });
     }
   },
 
   async login(req, res) {
     try {
       const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
+      }
+      
       const user = await storage.getUserByEmail(email);
       
       if (!user) {
@@ -52,13 +57,21 @@ module.exports = {
         { expiresIn: '1h' }
       );
       
-      res.status(200).json({ 
+      res.json({ 
         message: 'Authentication successful',
         token,
         userId: user.id
       });
     } catch (error) {
-      res.status(500).json({ message: 'Login failed', error });
+      res.status(500).json({ message: 'Login failed', error: error.message });
+    }
+  },
+
+  async logout(req, res) {
+    try {
+      res.json({ message: 'Logout successful' });
+    } catch (error) {
+      res.status(500).json({ message: 'Logout failed', error: error.message });
     }
   }
 };

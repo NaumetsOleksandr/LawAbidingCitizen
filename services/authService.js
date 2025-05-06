@@ -10,8 +10,6 @@ const logError = (error, context = '') => {
 export default {
   async register(firstName, lastName, email, password) {
     try {
-      console.log(`Attempting to register user: ${email}`);
-      
       const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -24,7 +22,6 @@ export default {
         throw new Error(data.message || 'Registration failed');
       }
 
-      console.log(`User ${email} registered successfully`);
       return data;
     } catch (error) {
       throw logError(error, 'Registration');
@@ -33,8 +30,6 @@ export default {
 
   async login(email, password) {
     try {
-      console.log(`Attempting login for: ${email}`);
-      
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,9 +43,11 @@ export default {
       }
 
       await AsyncStorage.setItem('userToken', data.token);
-      await AsyncStorage.setItem('userEmail', email);
+      await AsyncStorage.setItem('userId', data.userId);
+      await AsyncStorage.setItem('userEmail', data.email);
+      await AsyncStorage.setItem('userFirstName', data.firstName);
+      await AsyncStorage.setItem('userLastName', data.lastName);
       
-      console.log(`User ${email} logged in successfully`);
       return data;
     } catch (error) {
       throw logError(error, 'Login');
@@ -59,34 +56,50 @@ export default {
 
   async logout() {
     try {
-      const email = await AsyncStorage.getItem('userEmail');
-      console.log(`Logging out: ${email}`);
+      const token = await this.getToken();
+      await fetch(`${API_URL}/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.multiRemove([
+        'userToken',
+        'userId',
+        'userEmail',
+        'userFirstName',
+        'userLastName'
+      ]);
       
-      console.log(`Token removed for: ${email}`);
       return true;
     } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
+      throw logError(error, 'Logout');
     }
   },
 
   async getToken() {
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      return token;
+      return await AsyncStorage.getItem('userToken');
     } catch (error) {
       throw logError(error, 'Get Token');
     }
   },
 
-  async getUserEmail() {
+  async getUserInfo() {
     try {
-      const email = await AsyncStorage.getItem('userEmail');
-      return email;
+      const [userId, email, firstName, lastName] = await AsyncStorage.multiGet([
+        'userId', 'userEmail', 'userFirstName', 'userLastName'
+      ]);
+
+      return {
+        userId: userId[1],
+        email: email[1],
+        firstName: firstName[1],
+        lastName: lastName[1]
+      };
     } catch (error) {
-      throw logError(error, 'Get User Email');
+      throw logError(error, 'Get User Info');
     }
   },
 
@@ -97,5 +110,5 @@ export default {
     } catch (error) {
       throw logError(error, 'Check Login Status');
     }
-  },
+  }
 };

@@ -33,5 +33,12 @@
     "lastName": "j",
     "email": "gg@gmail.com",
     "password": "$2b$10$RbeICi0hzjeULuKVmKsG2.PFjofsyJV5XvQgi2Es8IG7AXyNQOzCu"
+  },
+  {
+    "id": "1745371781818",
+    "firstName": "11",
+    "lastName": "11",
+    "email": "11@gmail.com",
+    "password": "$2b$10$04TRR0ldUf7FQiSqNy/npezet9BnsbMx9kHejAJ4eKsVss5Z4J92K"
   }
 ]
