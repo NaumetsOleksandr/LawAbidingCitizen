@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, Alert, StyleSheet, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { CalloutSubview } from 'react-native-maps';
+import Calendar from './Kalendar/Calendar';
 
 const API_URL = 'http://192.168.1.108:5000/api';
 
@@ -11,6 +14,8 @@ const AuthScreen = ({ navigation }) => {
   const [lastName, setLastName] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+
+  const Tab = createBottomTabNavigator();
 
   const authHandler = async () => {
     if (!email || !password) {
@@ -138,6 +143,11 @@ const AuthScreen = ({ navigation }) => {
         <Button
           title={isLogin ? 'Немає акаунта? Зареєструватися' : 'Вже є акаунт? Увійти'}
           onPress={() => setIsLogin(prev => !prev)}
+          color="#666"
+        />
+        <Button
+          title={'Перейти до календаря'}
+          onPress={() => navigation.replace('SecondDrawer')}
           color="#666"
         />
       </View>

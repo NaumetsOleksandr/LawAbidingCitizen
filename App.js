@@ -7,6 +7,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import violationService from './services/violationService'; 
+
 
 import AuthScreen from './screens/AuthScreen';
 import Calendar from './screens/Kalendar/Calendar';
@@ -45,13 +47,26 @@ const MainTabs = () => (
 const MainDrawer = () => (
   <Drawer.Navigator>
     <Drawer.Screen name="Main" component={MainTabs} />
+    <Tab.Screen name="Profile" component={ProfileScreen} />
+  </Drawer.Navigator>
+);
+
+const SecondDrawer = () => (
+  <Drawer.Navigator>
     <Tab.Screen name="Calendar" component={Calendar} />
+    <Tab.Screen name="Auth" component={AuthScreen} />
   </Drawer.Navigator>
 );
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    violationService.initialize();
+    const unsubscribe = violationService.setupNetworkListener();
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -99,6 +114,11 @@ export default function App() {
           <Stack.Screen 
             name="Violations" 
             component={ViolationsScreen} 
+          />
+          <Stack.Screen 
+            name="SecondDrawer" 
+            component={SecondDrawer} 
+            options={{ headerShown: false }}
           />
       </Stack.Navigator>
     </NavigationContainer>

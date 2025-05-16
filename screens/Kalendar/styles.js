@@ -40,6 +40,15 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         position: 'relative',
     },
+    violationDot: {
+        position: 'absolute',
+        bottom: 5,
+        alignSelf: 'center',
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#4CAF50',
+      },
     dayText: {
         fontSize: 16,
     },

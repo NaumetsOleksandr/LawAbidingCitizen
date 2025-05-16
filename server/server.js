@@ -151,6 +151,39 @@ app.post('/api/violations', authenticate, (req, res) => {
   }
 });
 
+app.get('/api/violations/public', (req, res) => {
+  try {
+    const { date } = req.query;
+    let violations = readData(VIOLATIONS_FILE);
+
+    if (date) {
+      violations = violations.filter(v => v.date.startsWith(date));
+    }
+
+    res.json(Array.isArray(violations) ? violations : []);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to get violations', error: error.message });
+  }
+});
+
+app.get('/api/violations/public/dates', (req, res) => {
+  try {
+    const { month, year } = req.query;
+    if (!month || !year) return res.status(400).json({ message: 'Month and year are required' });
+
+    const violations = readData(VIOLATIONS_FILE);
+    const filteredViolations = violations.filter(v => 
+      new Date(v.date).getMonth() === parseInt(month) - 1 &&
+      new Date(v.date).getFullYear() === parseInt(year)
+    );
+
+    const dates = [...new Set(filteredViolations.map(v => v.date.split('T')[0]))];
+    res.json(dates);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to get violation dates', error: error.message });
+  }
+});
+
 app.get('/api/violations', authenticate, (req, res) => {
   try {
     const { date } = req.query;
@@ -158,6 +191,10 @@ app.get('/api/violations', authenticate, (req, res) => {
 
     if (date) {
       violations = violations.filter(v => v.date.startsWith(date));
+    }
+
+    if (req.query.userId) {
+      violations = violations.filter(v => v.userId === req.query.userId);
     }
 
     res.json(Array.isArray(violations) ? violations : []);
@@ -206,26 +243,49 @@ app.delete('/api/violations/:id', authenticate, (req, res) => {
   }
 });
 
-app.get('/api/violations/stats', authenticate, (req, res) => {
+app.post('/api/violations/sync', authenticate, async (req, res) => {
   try {
-    const violations = readData(VIOLATIONS_FILE);
-    const stats = {
-      total: violations.length,
-      lastMonth: violations.filter(v =>
-        new Date(v.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      ).length,
-      byMonth: {}
-    };
+      const { violations } = req.body;
+      
+      if (!Array.isArray(violations)) {
+          return res.status(400).json({ message: 'Invalid violations data' });
+      }
 
-    violations.forEach(v => {
-      const d = new Date(v.date);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      stats.byMonth[key] = (stats.byMonth[key] || 0) + 1;
-    });
+      const allViolations = readData(VIOLATIONS_FILE);
+      const results = [];
 
-    res.json(stats);
+      for (const violation of violations) {
+          try {у
+              const existingIndex = allViolations.findIndex(v => v.localId === violation.localId);
+              
+              if (existingIndex >= 0) {
+                  allViolations[existingIndex] = {
+                      ...allViolations[existingIndex],
+                      ...violation,
+                      synced: true,
+                      updatedAt: new Date().toISOString()
+                  };
+                  results.push({ id: violation.localId, status: 'updated' });
+              } else {
+                  const newViolation = {
+                      ...violation,
+                      id: Date.now().toString(),
+                      synced: true,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString()
+                  };
+                  allViolations.push(newViolation);
+                  results.push({ id: violation.localId, serverId: newViolation.id, status: 'created' });
+              }
+          } catch (error) {
+              results.push({ id: violation.localId, status: 'error', error: error.message });
+          }
+      }
+
+      writeData(VIOLATIONS_FILE, allViolations);
+      res.json({ results });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to get stats', error: error.message });
+      res.status(500).json({ message: 'Sync failed', error: error.message });
   }
 });
 
